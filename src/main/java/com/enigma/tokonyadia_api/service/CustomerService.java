@@ -1,18 +1,19 @@
 package com.enigma.tokonyadia_api.service;
 
-import com.enigma.tokonyadia_api.entity.Customer;
-
-import java.util.List;
+import com.enigma.tokonyadia_api.dto.request.CustomerRequest;
+import com.enigma.tokonyadia_api.dto.request.SearchRequest;
+import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
+import org.springframework.data.domain.Page;
 
 public interface CustomerService {
 
-    Customer create(Customer customer);
+    CustomerResponse create(CustomerRequest customer);
 
-    List<Customer> getAll();
+    Page<CustomerResponse> search(SearchRequest request);
 
-    Customer getById(String id);
+    CustomerResponse getById(String id);
 
-    Customer updateById(String id, Customer customer);
+    CustomerResponse updateById(String id, CustomerRequest customer);
 
     void removeById(String id);
 

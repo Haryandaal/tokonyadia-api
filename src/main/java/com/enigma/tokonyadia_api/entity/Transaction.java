@@ -25,10 +25,6 @@ public class Transaction {
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
-    @ManyToOne
-    @JoinColumn(name = "store_id", referencedColumnName = "id")
-    private Store store;
-
     @Column(name = "trans_date")
     private LocalDateTime date;
 
