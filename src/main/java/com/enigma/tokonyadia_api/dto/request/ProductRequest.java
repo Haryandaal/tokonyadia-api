@@ -20,5 +20,5 @@ public class ProductRequest {
 
     private Integer stock;
 
-    private Store store;
+    private String storeId;
 }

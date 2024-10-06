@@ -56,10 +56,10 @@ public class CustomerServiceImpl implements CustomerService {
             List<Predicate> predicates = new ArrayList<>();
             if (Objects.nonNull(request.getQuery())) {
                 predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(root.get("name"), "%" + request.getQuery() + "%"),
-                        criteriaBuilder.like(root.get("address"), "%" + request.getQuery() + "%"),
-                        criteriaBuilder.like(root.get("phone"), "%" + request.getQuery() + "%"),
-                        criteriaBuilder.like(root.get("email"), "%" + request.getQuery() + "%")
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + request.getQuery() + "%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("address")), "%" + request.getQuery() + "%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("phone")), "%" + request.getQuery() + "%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + request.getQuery() + "%")
                 ));
             }
             return query.where(predicates.toArray(new Predicate[]{})).getRestriction();

@@ -32,7 +32,7 @@ public class Store {
     @Column(nullable = false)
     private String address;
 
-    @OneToMany(mappedBy = "store")
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
     private List<Product> products;
 
 }

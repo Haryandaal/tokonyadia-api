@@ -21,5 +21,7 @@ public class StoreRequest {
 
     private String address;
 
+    private List<ProductRequest> products;
+
 //    private List<ProductRequest> products;
 }

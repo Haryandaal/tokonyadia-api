@@ -1,17 +1,13 @@
 package com.enigma.tokonyadia_api.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
-
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StoreResponse {
+public class ProductStoreResponse {
 
     private String id;
 
@@ -22,6 +18,4 @@ public class StoreResponse {
     private String phone;
 
     private String address;
-
-    private List<ProductInStoreResponse> products;
 }

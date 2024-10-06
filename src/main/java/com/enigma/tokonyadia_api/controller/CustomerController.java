@@ -40,7 +40,7 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<WebResponse<List<CustomerResponse>>> getAllCustomers(
+    public ResponseEntity<WebResponse<List<CustomerResponse>>> search(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
             @RequestParam(value = "sort", required = false) String sort,

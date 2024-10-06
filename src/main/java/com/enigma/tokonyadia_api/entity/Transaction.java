@@ -28,6 +28,6 @@ public class Transaction {
     @Column(name = "trans_date")
     private LocalDateTime date;
 
-    @OneToMany(mappedBy = "transaction")
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
     private List<TransactionItem> transactionItems;
 }
