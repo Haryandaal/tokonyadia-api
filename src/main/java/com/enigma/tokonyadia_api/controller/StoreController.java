@@ -2,6 +2,7 @@ package com.enigma.tokonyadia_api.controller;
 
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
 import com.enigma.tokonyadia_api.dto.request.StoreRequest;
+import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
 import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
 import com.enigma.tokonyadia_api.service.StoreService;
@@ -31,6 +32,12 @@ public class StoreController {
     public ResponseEntity<WebResponse<StoreResponse>> getStoreById(@PathVariable(name = "id") String id) {
         StoreResponse response = storeService.getById(id);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Store found", response);
+    }
+
+    @GetMapping(path = "{storeId}/products")
+    public ResponseEntity<WebResponse<List<?>>> getProductByStoreId(@PathVariable(name = "storeId") String storeId) {
+        List<ProductInStoreResponse> responses = storeService.getByStoreId(storeId);
+        return ResponseUtil.buildResponse(HttpStatus.OK, "Product found", responses);
     }
 
     @GetMapping()

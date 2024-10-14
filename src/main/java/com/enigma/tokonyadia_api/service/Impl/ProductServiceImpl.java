@@ -2,6 +2,7 @@ package com.enigma.tokonyadia_api.service.Impl;
 
 import com.enigma.tokonyadia_api.dto.request.ProductRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
+import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
 import com.enigma.tokonyadia_api.dto.response.ProductResponse;
 import com.enigma.tokonyadia_api.dto.response.ProductStoreResponse;
 import com.enigma.tokonyadia_api.entity.Product;
@@ -73,6 +74,7 @@ public class ProductServiceImpl implements ProductService {
         return products.map(this::toProductResponse);
     }
 
+
     @Override
     public ProductResponse getById(String id) {
         Product existingProduct = productRepository.findById(id)
@@ -111,7 +113,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse toProductResponse(Product product) {
-
 //        return ProductResponse.builder()
 //                .id(product.getId())
 //                .name(product.getName())
@@ -120,7 +121,6 @@ public class ProductServiceImpl implements ProductService {
 //                .stock(product.getStock())
 //                .store(product.getStore())
 //                .build();
-
         ProductResponse productResponse = new ProductResponse();
         productResponse.setId(product.getId());
         productResponse.setName(product.getName());

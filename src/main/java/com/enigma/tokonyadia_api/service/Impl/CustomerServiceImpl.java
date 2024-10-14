@@ -1,11 +1,14 @@
 package com.enigma.tokonyadia_api.service.Impl;
 
-import com.enigma.tokonyadia_api.dto.request.CustomerRequest;
+import com.enigma.tokonyadia_api.constant.UserRole;
+import com.enigma.tokonyadia_api.dto.request.CustomerCreateRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
 import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
 import com.enigma.tokonyadia_api.entity.Customer;
+import com.enigma.tokonyadia_api.entity.UserAccount;
 import com.enigma.tokonyadia_api.repository.CustomerRepository;
 import com.enigma.tokonyadia_api.service.CustomerService;
+import com.enigma.tokonyadia_api.service.UserService;
 import com.enigma.tokonyadia_api.util.SortUtil;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,26 +33,34 @@ import java.util.Objects;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final UserService userService;
 
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse create(CustomerRequest customer) {
+    public CustomerResponse create(CustomerCreateRequest request) {
 
-        Customer newCustomer = new Customer();
-        newCustomer.setName(customer.getName());
-        newCustomer.setAddress(customer.getAddress() );
-        newCustomer.setEmail(customer.getEmail());
-        newCustomer.setPhone(customer.getPhone());
+        UserAccount userAccount = UserAccount.builder()
+                .username(request.getUsername())
+                .password(request.getPassword())
+                .role(UserRole.ROLE_CUSTOMER)
+                .build();
+        userService.create(userAccount);
+        Customer customer = Customer.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .address(request.getAddress())
+                .userAccount(userAccount)
+                .build();
+        customerRepository.saveAndFlush(customer);
 
-        customerRepository.saveAndFlush(newCustomer);
-
-        return toCustomerResponse(newCustomer);
+        return toCustomerResponse(customer);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<CustomerResponse> search(SearchRequest request) {
-//        List<Customer> customers = customerRepository.findAll();
-//        return customers.stream().map(this::toCustomerResponse).toList();
         Sort sortBy = SortUtil.parseSort(request.getSort());
         Pageable pageable = PageRequest.of(request.getPage() <= 0 ? 0 : request.getPage() - 1, request.getSize(), sortBy);
 
@@ -66,16 +79,9 @@ public class CustomerServiceImpl implements CustomerService {
         });
         Page<Customer> customers = customerRepository.findAll(specification, pageable);
         return customers.map(this::toCustomerResponse);
-
-
-//
-//        Page<Customer> customers = customerRepository.findAll(pageable);
-//
-//        return customers.map(this::toCustomerResponse);
-
-
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CustomerResponse getById(String id) {
         Customer existingCustomer = customerRepository.findById(id)
@@ -83,10 +89,16 @@ public class CustomerServiceImpl implements CustomerService {
         return toCustomerResponse(existingCustomer);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse updateById(String id, CustomerRequest customer) {
+    public CustomerResponse update(String id, CustomerCreateRequest customer) {
         Customer existingCustomer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (userAccount.getRole().equals(UserRole.ROLE_CUSTOMER) && !userAccount.getId().equals(existingCustomer.getUserAccount().getId()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to update this customer");
 
         existingCustomer.setName(customer.getName());
         existingCustomer.setAddress(customer.getAddress());
@@ -112,6 +124,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .address(customer.getAddress())
                 .email(customer.getEmail())
                 .phone(customer.getPhone())
+                .userId(customer.getUserAccount().getId())
                 .build();
     }
 }

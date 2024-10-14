@@ -1,10 +1,7 @@
 package com.enigma.tokonyadia_api.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -13,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "customers")
 public class Customer {
 
@@ -31,6 +29,10 @@ public class Customer {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @OneToOne
+    @JoinColumn(name = "user_account_id")
+    private UserAccount userAccount;
 
     @OneToMany(mappedBy = "customer")
     private List<Transaction> transactions;

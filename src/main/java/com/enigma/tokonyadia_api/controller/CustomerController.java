@@ -1,6 +1,6 @@
 package com.enigma.tokonyadia_api.controller;
 
-import com.enigma.tokonyadia_api.dto.request.CustomerRequest;
+import com.enigma.tokonyadia_api.dto.request.CustomerCreateRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
 import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "api/customer")
+@RequestMapping(path = "api/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
 
-    @PostMapping()
-    public ResponseEntity<WebResponse<CustomerResponse>> createCustomer(@RequestBody CustomerRequest customer) {
+    @PostMapping
+    public ResponseEntity<WebResponse<CustomerResponse>> register(@RequestBody CustomerCreateRequest customer) {
         CustomerResponse customerResponse = customerService.create(customer);
         return ResponseUtil.buildResponse(HttpStatus.CREATED, "Customer created", customerResponse);
     }
@@ -34,8 +34,8 @@ public class CustomerController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<WebResponse<CustomerResponse>> updateCustomerById(@PathVariable(name = "id") String id, @RequestBody CustomerRequest customer) {
-        CustomerResponse customerResponse = customerService.updateById(id, customer);
+    public ResponseEntity<WebResponse<CustomerResponse>> updateCustomer(@PathVariable(name = "id") String id, @RequestBody CustomerCreateRequest customer) {
+        CustomerResponse customerResponse = customerService.update(id, customer);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Customer found", customerResponse);
     }
 

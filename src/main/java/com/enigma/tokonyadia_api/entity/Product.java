@@ -36,6 +36,6 @@ public class Product {
     @JoinColumn(name = "store_id", referencedColumnName = "id")
     private Store store;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<TransactionItem> transactionItems;
 }

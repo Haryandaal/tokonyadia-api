@@ -62,6 +62,20 @@ public class StoreServiceImpl implements StoreService {
         return toStoreResponse(store);
     }
 
+    public List<ProductInStoreResponse> getByStoreId(String storeId) {
+        List<Product> existingStore = productRepository.findByStoreId(storeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found"));
+
+        return existingStore.stream().map(product ->
+                new ProductInStoreResponse(
+                        product.getId(),
+                        product.getName(),
+                        product.getDescription(),
+                        product.getPrice(),
+                        product.getStock()
+                )).toList();
+    }
+
     @Override
     public Page<StoreResponse> search(SearchRequest request) {
         Sort sortBy = SortUtil.parseSort(request.getSort());
