@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class PagingAndSortingRequest {
+public class    PagingAndSortingRequest {
 
     private Integer page;
     private Integer size;

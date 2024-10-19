@@ -19,5 +19,7 @@ public class ProductResponse {
 
     private Integer stock;
 
-    private ProductStoreResponse store;
+    private String categoryName;
+
+    private StoreResponse store;
 }

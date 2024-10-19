@@ -35,8 +35,9 @@ public class SecurityConfiguration {
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req ->
                         req.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                                .requestMatchers("/api/auth/login").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "api/customers").permitAll()
+                                .requestMatchers(HttpMethod.POST, "api/payments/notifications").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

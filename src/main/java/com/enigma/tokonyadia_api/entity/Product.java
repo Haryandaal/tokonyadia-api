@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -36,6 +35,10 @@ public class Product {
     @JoinColumn(name = "store_id", referencedColumnName = "id")
     private Store store;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
+    private Category category;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<TransactionItem> transactionItems;
+    private List<TransactionDetail> transactionItems;
 }

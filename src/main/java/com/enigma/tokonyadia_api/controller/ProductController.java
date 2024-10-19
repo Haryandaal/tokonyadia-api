@@ -2,9 +2,7 @@ package com.enigma.tokonyadia_api.controller;
 
 import com.enigma.tokonyadia_api.dto.request.ProductRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
-import com.enigma.tokonyadia_api.dto.request.StoreRequest;
 import com.enigma.tokonyadia_api.dto.response.ProductResponse;
-import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
 import com.enigma.tokonyadia_api.service.ProductService;
 import com.enigma.tokonyadia_api.util.ResponseUtil;
@@ -17,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "api/product")
+@RequestMapping(path = "api/products")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -29,9 +27,15 @@ public class ProductController {
         return ResponseUtil.buildResponse(HttpStatus.CREATED, "Product created", productResponse);
     }
 
+    @GetMapping(path = "categories/{id}")
+    public ResponseEntity<?> getProductByCategoryId(@PathVariable(name = "id") String categoryName) {
+        List<ProductResponse> responses = productService.getByCategoryId(categoryName);
+        return ResponseUtil.buildResponse(HttpStatus.OK, "Product found", responses);
+    }
+
     @GetMapping(path = "{id}")
     public ResponseEntity<WebResponse<ProductResponse>> getStoreById(@PathVariable(name = "id") String id) {
-        ProductResponse response = productService.getById(id);
+        ProductResponse response = productService.getOne(id);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Product found", response);
     }
 

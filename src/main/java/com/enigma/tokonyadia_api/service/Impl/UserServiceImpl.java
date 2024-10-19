@@ -2,11 +2,15 @@ package com.enigma.tokonyadia_api.service.Impl;
 
 import com.enigma.tokonyadia_api.constant.UserRole;
 import com.enigma.tokonyadia_api.dto.request.UserRequest;
+import com.enigma.tokonyadia_api.dto.request.UserUpdatePasswordRequest;
 import com.enigma.tokonyadia_api.dto.response.UserResponse;
 import com.enigma.tokonyadia_api.entity.UserAccount;
 import com.enigma.tokonyadia_api.repository.UserAccountRepository;
 import com.enigma.tokonyadia_api.service.UserService;
+import com.enigma.tokonyadia_api.util.ValidationUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,10 +27,31 @@ public class UserServiceImpl implements UserService {
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ValidationUtil validationUtil;
+
+    @Value("${USERNAME_ADMIN:admin}")
+    private String USERNAME_ADMIN;
+
+    @Value("${PASSWORD_ADMIN:password}")
+    private String PASSWORD_ADMIN;
+
+    @Transactional(rollbackFor = Exception.class)
+    @PostConstruct
+    public void initUser() {
+        boolean existsByUsername = userAccountRepository.existsByUsername(USERNAME_ADMIN);
+        if (existsByUsername) return;
+        UserAccount userAccount = UserAccount.builder()
+                .username(USERNAME_ADMIN)
+                .password(passwordEncoder.encode(PASSWORD_ADMIN))
+                .role(UserRole.ROLE_ADMIN)
+                .build();
+        userAccountRepository.saveAndFlush(userAccount);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public UserResponse create(UserRequest userRequest) {
+        validationUtil.validate(userRequest);
 
         if (userAccountRepository.findByUsername(userRequest.getUsername()).isPresent())
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
@@ -64,6 +89,20 @@ public class UserServiceImpl implements UserService {
         UserAccount userAccount = (UserAccount) authentication.getPrincipal();
         loadUserByUsername(userAccount.getUsername());
         return toUserResponse(userAccount);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void updatePassword(String id, UserUpdatePasswordRequest request) {
+        validationUtil.validate(request);
+        UserAccount userAccount = getById(id);
+
+        if (!passwordEncoder.matches(userAccount.getPassword(), request.getCurrentPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password does not match");
+        }
+
+        userAccount.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userAccountRepository.saveAndFlush(userAccount);
     }
 
     @Transactional(readOnly = true)

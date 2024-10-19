@@ -8,18 +8,25 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.enigma.tokonyadia_api.entity.UserAccount;
 import com.enigma.tokonyadia_api.service.JwtService;
+import com.enigma.tokonyadia_api.service.RedisService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
     @Value("${haryanda.tokonyadia.jwt-secret}")
@@ -30,6 +37,10 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${haryanda.tokonyadia.jwt-issuer}")
     private String ISSUER;
+
+    private final String BLACKLISTED = "BLACKLISTED";
+
+    private final RedisService redisService;
 
     @Override
     public String generateAccessToken(UserAccount userAccount) {
@@ -79,5 +90,57 @@ public class JwtServiceImpl implements JwtService {
             log.error("Error verifying token - {}", e.getMessage());
             return null;
         }
+    }
+
+    @Override
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        return parseToken(bearerToken);
+    }
+
+    @Override
+    public void blacklistAccessToken(String bearerToken) {
+        String token = parseToken(bearerToken);
+
+        DecodedJWT decodedJWT = extractClaimJWT(token);
+
+        if (decodedJWT == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid token");
+        }
+
+        Date expiresAt = decodedJWT.getExpiresAt();
+        long timeLeft = expiresAt.getTime() - System.currentTimeMillis();
+
+        redisService.save(token, BLACKLISTED, Duration.ofHours(timeLeft));
+
+
+    }
+
+    private DecodedJWT extractClaimJWT(String token) {
+        log.info("Extract Token JWT - {}", System.currentTimeMillis());
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(ISSUER)
+                    .build();
+            return verifier.verify(token);
+        } catch (JWTVerificationException exception){
+            log.error("Error while validate JWT Token: {}", exception.getMessage());
+            return null;
+        }
+    }
+
+
+    @Override
+    public boolean isTokenBlacklisted(String token) {
+        String blacklistToken = redisService.get(token);
+        return blacklistToken != null && blacklistToken.equals(BLACKLISTED);
+    }
+
+    private String parseToken(String bearerToken) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

@@ -5,6 +5,7 @@ import com.enigma.tokonyadia_api.dto.request.StoreRequest;
 import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
 import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
+import com.enigma.tokonyadia_api.entity.Store;
 import com.enigma.tokonyadia_api.service.StoreService;
 import com.enigma.tokonyadia_api.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class StoreController {
 
     @GetMapping(path = "{id}")
     public ResponseEntity<WebResponse<StoreResponse>> getStoreById(@PathVariable(name = "id") String id) {
-        StoreResponse response = storeService.getById(id);
+        StoreResponse response = storeService.getOne(id);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Store found", response);
     }
 

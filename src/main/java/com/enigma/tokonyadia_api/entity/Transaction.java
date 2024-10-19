@@ -1,10 +1,8 @@
 package com.enigma.tokonyadia_api.entity;
 
+import com.enigma.tokonyadia_api.constant.TransactionStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "transactions")
 public class Transaction {
@@ -25,9 +24,19 @@ public class Transaction {
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
-    @Column(name = "trans_date")
-    private LocalDateTime date;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status")
+    private TransactionStatus transactionStatus;
+
+    @Column(name = "transaction_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime transactionDate;
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
-    private List<TransactionItem> transactionItems;
+    private List<TransactionDetail> transactionDetails;
+
+    @PrePersist
+    public void prePersist() {
+        this.transactionDate = LocalDateTime.now();
+    }
 }

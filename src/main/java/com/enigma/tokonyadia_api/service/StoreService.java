@@ -5,6 +5,7 @@ import com.enigma.tokonyadia_api.dto.request.StoreRequest;
 import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
 import com.enigma.tokonyadia_api.dto.response.ProductResponse;
 import com.enigma.tokonyadia_api.dto.response.StoreResponse;
+import com.enigma.tokonyadia_api.entity.Store;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -19,7 +20,9 @@ public interface StoreService {
 
     Page<StoreResponse> search(SearchRequest request);
 
-    StoreResponse getById(String id);
+    Store getById(String id);
+
+    StoreResponse getOne(String id);
 
     StoreResponse updateById(String id, StoreRequest request);
 
