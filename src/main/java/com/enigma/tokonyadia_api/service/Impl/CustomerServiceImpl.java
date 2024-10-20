@@ -1,7 +1,7 @@
 package com.enigma.tokonyadia_api.service.Impl;
 
 import com.enigma.tokonyadia_api.constant.UserRole;
-import com.enigma.tokonyadia_api.dto.request.RegisterRequest;
+import com.enigma.tokonyadia_api.dto.request.RegisterCustomerRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
 import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
 import com.enigma.tokonyadia_api.entity.Customer;
@@ -35,7 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse create(RegisterRequest request) {
+    public CustomerResponse create(RegisterCustomerRequest request) {
         validationUtil.validate(request);
 
         UserAccount userAccount = UserAccount.builder()
@@ -74,7 +74,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse update(String id, RegisterRequest request) {
+    public CustomerResponse update(String id, RegisterCustomerRequest request) {
         validationUtil.validate(request);
 
         Customer customer = getById(id);

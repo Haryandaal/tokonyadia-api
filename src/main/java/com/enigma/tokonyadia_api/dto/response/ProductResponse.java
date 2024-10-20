@@ -2,6 +2,8 @@ package com.enigma.tokonyadia_api.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,7 +21,7 @@ public class ProductResponse {
 
     private Integer stock;
 
-    private String categoryName;
-
+    private String category;
     private StoreResponse store;
+    private List<FileResponse> images;
 }

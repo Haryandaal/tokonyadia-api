@@ -33,6 +33,9 @@ public class UserAccount implements UserDetails {
     @Column(name = "role")
     private UserRole role;
 
+    @OneToOne(mappedBy = "userAccount")
+    private Customer customer;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<UserRole> myRoles = List.of(role);

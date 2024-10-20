@@ -6,8 +6,10 @@ import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
 import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.entity.Product;
 import com.enigma.tokonyadia_api.entity.Store;
+import com.enigma.tokonyadia_api.entity.StoreAdmin;
 import com.enigma.tokonyadia_api.repository.ProductRepository;
 import com.enigma.tokonyadia_api.repository.StoreRepository;
+import com.enigma.tokonyadia_api.service.StoreAdminService;
 import com.enigma.tokonyadia_api.service.StoreService;
 import com.enigma.tokonyadia_api.specification.StoreSpecification;
 import com.enigma.tokonyadia_api.util.SortUtil;
@@ -30,18 +32,27 @@ import java.util.stream.Collectors;
 public class StoreServiceImpl implements StoreService {
 
     private final StoreRepository storeRepository;
+    private final StoreAdminService storeAdminService;
     private final ProductRepository productRepository;
     private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse create(StoreRequest request) {
+    public StoreResponse create(String storeAdminId, StoreRequest request) {
         validationUtil.validate(request);
+
+        StoreAdmin storeAdmin = storeAdminService.getById(storeAdminId);
+
+        // store admin can only create store max 2
+        if (storeAdmin.getStores().size() > 2 - 1 )
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Store admin can't create more than 2 stores");
+
         Store store = new Store();
         store.setNoSiup(request.getNoSiup());
         store.setName(request.getName());
         store.setPhone(request.getPhone());
         store.setAddress(request.getAddress());
+        store.setStoreAdmin(storeAdmin);
 
         storeRepository.saveAndFlush(store);
 
@@ -137,6 +148,7 @@ public class StoreServiceImpl implements StoreService {
                 .name(store.getName())
                 .address(store.getAddress())
                 .phone(store.getPhone())
+                .storeAdminId(store.getStoreAdmin().getId())
                 .build();
 
     }

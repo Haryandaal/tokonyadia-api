@@ -4,10 +4,10 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class CustomerResponse {
+public class StoreAdminResponse {
 
     private String id;
 

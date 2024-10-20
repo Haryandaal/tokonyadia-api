@@ -7,18 +7,18 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@NoArgsConstructor
 @Builder
-@Table(name = "customers")
-public class Customer {
+@Entity
+@Table(name = "store_admins")
+public class StoreAdmin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(nullable = false)
@@ -34,6 +34,6 @@ public class Customer {
     @JoinColumn(name = "user_account_id")
     private UserAccount userAccount;
 
-    @OneToMany(mappedBy = "customer")
-    private List<Order> orders;
+    @OneToMany(mappedBy = "storeAdmin")
+    private List<Store> stores;
 }

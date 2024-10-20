@@ -11,7 +11,7 @@ import lombok.*;
 public class MidtransTransactionRequest {
 
     @JsonProperty(value = "order_id")
-    private String transactionId;
+    private String orderId;
 
     @JsonProperty(value = "gross_amount")
     private Long grossAmount;

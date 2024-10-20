@@ -4,10 +4,12 @@ import lombok.*;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class PaymentRequest {
+public class CartRequest {
 
-    private String cartId;
+    private String customerId;
+
+    private String productId;
 }

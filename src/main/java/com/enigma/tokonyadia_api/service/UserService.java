@@ -17,6 +17,5 @@ public interface UserService extends UserDetailsService {
 
     UserResponse getAuthentication();
 
-    @Transactional(rollbackFor = Exception.class)
     void updatePassword(String id, UserUpdatePasswordRequest request);
 }

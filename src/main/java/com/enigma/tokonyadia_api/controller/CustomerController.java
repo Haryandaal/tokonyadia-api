@@ -1,6 +1,6 @@
 package com.enigma.tokonyadia_api.controller;
 
-import com.enigma.tokonyadia_api.dto.request.RegisterRequest;
+import com.enigma.tokonyadia_api.dto.request.RegisterCustomerRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
 import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
@@ -22,7 +22,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<WebResponse<CustomerResponse>> register(@RequestBody RegisterRequest customer) {
+    public ResponseEntity<WebResponse<CustomerResponse>> register(@RequestBody RegisterCustomerRequest customer) {
         CustomerResponse customerResponse = customerService.create(customer);
         return ResponseUtil.buildResponse(HttpStatus.CREATED, "Customer created", customerResponse);
     }
@@ -34,9 +34,9 @@ public class CustomerController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<WebResponse<CustomerResponse>> updateCustomer(@PathVariable(name = "id") String id, @RequestBody RegisterRequest customer) {
+    public ResponseEntity<WebResponse<CustomerResponse>> updateCustomer(@PathVariable(name = "id") String id, @RequestBody RegisterCustomerRequest customer) {
         CustomerResponse customerResponse = customerService.update(id, customer);
-        return ResponseUtil.buildResponse(HttpStatus.OK, "Customer found", customerResponse);
+        return ResponseUtil.buildResponse(HttpStatus.OK, "Customer updated", customerResponse);
     }
 
     @GetMapping

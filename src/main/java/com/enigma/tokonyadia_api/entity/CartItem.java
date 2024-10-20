@@ -9,16 +9,16 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "transaction_details")
-public class TransactionDetail {
+@Table(name = "cart-items")
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "transaction_id", referencedColumnName = "id")
-    private Transaction transaction;
+    @JoinColumn(name = "cart_id", referencedColumnName = "id")
+    private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id", referencedColumnName = "id")

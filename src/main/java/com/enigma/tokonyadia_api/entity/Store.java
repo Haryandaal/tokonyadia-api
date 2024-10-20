@@ -32,6 +32,10 @@ public class Store {
     @Column(nullable = false)
     private String address;
 
+    @ManyToOne
+    @JoinColumn(name = "store_admin_id", referencedColumnName = "id")
+    private StoreAdmin storeAdmin;
+
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
     private List<Product> products;
 

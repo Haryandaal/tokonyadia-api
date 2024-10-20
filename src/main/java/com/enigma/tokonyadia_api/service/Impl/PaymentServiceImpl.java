@@ -2,16 +2,15 @@ package com.enigma.tokonyadia_api.service.Impl;
 
 import com.enigma.tokonyadia_api.client.MidtransClient;
 import com.enigma.tokonyadia_api.constant.PaymentStatus;
-import com.enigma.tokonyadia_api.constant.TransactionStatus;
+import com.enigma.tokonyadia_api.constant.OrderStatus;
 import com.enigma.tokonyadia_api.dto.request.*;
 import com.enigma.tokonyadia_api.dto.response.MidtransSnapResponse;
 import com.enigma.tokonyadia_api.dto.response.PaymentResponse;
-import com.enigma.tokonyadia_api.entity.Payment;
-import com.enigma.tokonyadia_api.entity.Transaction;
-import com.enigma.tokonyadia_api.entity.TransactionDetail;
+import com.enigma.tokonyadia_api.entity.*;
 import com.enigma.tokonyadia_api.repository.PaymentRepository;
+import com.enigma.tokonyadia_api.service.CartService;
 import com.enigma.tokonyadia_api.service.PaymentService;
-import com.enigma.tokonyadia_api.service.TransactionService;
+import com.enigma.tokonyadia_api.service.OrderService;
 import com.enigma.tokonyadia_api.util.HashUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,9 @@ import java.util.List;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final TransactionService transactionService;
+    private final CartService cartService;
     private final MidtransClient midtransClient;
+
 
     @Value("${midtrans.server.key}")
     private String MIDTRANS_SERVER_KEY;
@@ -41,21 +41,29 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(rollbackOn = Exception.class)
     @Override
     public PaymentResponse createPayment(PaymentRequest request) {
-        Transaction transaction = transactionService.getById(request.getTransactionId());
+        Cart cart = cartService.getById(request.getCartId());
 
-        if (!transaction.getTransactionStatus().equals(TransactionStatus.DRAFT))
+        if (!cart.getOrderStatus().equals(OrderStatus.DRAFT))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can only checkout draft orders");
 
+        // Validasi stok produk di dalam keranjang
+        for (CartItem item : cart.getCartItems()) {
+            Product product = item.getProduct();
+            if (product.getStock() < item.getQuantity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product " + product.getName() + " is out of stock.");
+            }
+        }
+
         long amount = 0;
-        for (TransactionDetail transactionDetail : transaction.getTransactionDetails()) {
-            Integer quantity = transactionDetail.getQuantity();
-            Long price = transactionDetail.getPrice();
+        for (CartItem cartItem : cart.getCartItems()) {
+            Integer quantity = cartItem.getQuantity();
+            Long price = cartItem.getPrice();
             amount += quantity * price;
         }
 
         MidtransPaymentRequest midtransPaymentRequest = MidtransPaymentRequest.builder()
                 .transactionDetails(MidtransTransactionRequest.builder()
-                        .transactionId(transaction.getId())
+                        .orderId(cart.getId())
                         .grossAmount(amount)
                         .build())
                 .enabledPayment(List.of("bca_va", "gopay", "shopeepay", "other_qris"))
@@ -65,7 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
         MidtransSnapResponse snapTransaction = midtransClient.createSnapTransaction(midtransPaymentRequest, headerValue);
 
         Payment payment = Payment.builder()
-                .transaction(transaction)
+                .cart(cart)
                 .amount(amount)
                 .paymentStatus(PaymentStatus.PENDING)
                 .redirectUrl(snapTransaction.getRedirectUrl())
@@ -73,12 +81,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
         paymentRepository.saveAndFlush(payment);
 
-        transactionService.updateTransactionStatus(transaction.getId(), UpdateTransactionStatusRequest.builder()
-                        .status(TransactionStatus.PENDING)
+        cartService.updateOrderStatus(cart.getId(), UpdateOrderStatusRequest.builder()
+                        .status(OrderStatus.PENDING)
                 .build());
 
         return PaymentResponse.builder()
-                .transactionId(payment.getTransaction().getId())
+                .cartId(payment.getCart().getId())
                 .amount(payment.getAmount())
                 .paymentStatus(payment.getPaymentStatus())
                 .redirectUrl(payment.getRedirectUrl())
@@ -93,23 +101,23 @@ public class PaymentServiceImpl implements PaymentService {
         if (!validateSignatureKey(request))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid signature key");
 
-        Payment payment = paymentRepository.findByTransaction_Id(request.getOrderId())
+        Payment payment = paymentRepository.findByOrder_Id(request.getOrderId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
 
         PaymentStatus newPaymentStatus = PaymentStatus.findByDesc(request.getTransactionStatus());
         payment.setPaymentStatus(newPaymentStatus);
         payment.setUpdatedAt(LocalDateTime.now());
 
-        Transaction transaction = transactionService.getById(request.getOrderId());
+        Cart cart = cartService.getById(request.getOrderId());
 
         if (newPaymentStatus != null && newPaymentStatus.equals(PaymentStatus.SETTLEMENT)) {
-            transaction.setTransactionStatus(TransactionStatus.CONFIRMED);
+            cart.setOrderStatus(OrderStatus.CONFIRMED);
         }
 
-        UpdateTransactionStatusRequest updateTransactionStatusRequest = UpdateTransactionStatusRequest.builder()
-                .status(transaction.getTransactionStatus())
+        UpdateOrderStatusRequest updateOrderStatusRequest = UpdateOrderStatusRequest.builder()
+                .status(cart.getOrderStatus())
                 .build();
-        transactionService.updateTransactionStatus(transaction.getId(), updateTransactionStatusRequest);
+        cartService.updateOrderStatus(cart.getId(), updateOrderStatusRequest);
         paymentRepository.saveAndFlush(payment);
         log.info("end getNotification: {}", System.currentTimeMillis());
     }

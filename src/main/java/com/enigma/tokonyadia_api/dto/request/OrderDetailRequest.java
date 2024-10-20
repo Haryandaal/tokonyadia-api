@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TransactionDetailRequest {
+public class OrderDetailRequest {
 
     @NotBlank(message = "product id is required")
     private String productId;

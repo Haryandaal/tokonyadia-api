@@ -19,8 +19,12 @@ public class Payment {
     private String id;
 
     @OneToOne
-    @JoinColumn(name = "transaction_ud")
-    private Transaction transaction;
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @OneToOne
+    @JoinColumn(name = "cart_id")
+    private Cart cart;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

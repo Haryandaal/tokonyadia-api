@@ -2,13 +2,16 @@ package com.enigma.tokonyadia_api.service.Impl;
 
 import com.enigma.tokonyadia_api.dto.request.ProductRequest;
 import com.enigma.tokonyadia_api.dto.request.SearchRequest;
+import com.enigma.tokonyadia_api.dto.response.FileResponse;
 import com.enigma.tokonyadia_api.dto.response.ProductResponse;
 import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.entity.Category;
 import com.enigma.tokonyadia_api.entity.Product;
+import com.enigma.tokonyadia_api.entity.ProductImage;
 import com.enigma.tokonyadia_api.entity.Store;
 import com.enigma.tokonyadia_api.repository.ProductRepository;
 import com.enigma.tokonyadia_api.service.CategoryService;
+import com.enigma.tokonyadia_api.service.ProductImageService;
 import com.enigma.tokonyadia_api.service.ProductService;
 import com.enigma.tokonyadia_api.service.StoreService;
 import com.enigma.tokonyadia_api.specification.ProductSpecification;
@@ -22,8 +25,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -33,14 +38,16 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final StoreService storeService;
     private final CategoryService categoryService;
+    private final ProductImageService productImageService;
     private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ProductResponse create(ProductRequest request) {
+    public ProductResponse create(List<MultipartFile> multipartFiles, ProductRequest request) {
         validationUtil.validate(request);
         Store store = storeService.getById(request.getStoreId());
         Category category = categoryService.getById(request.getCategoryId());
+
 
         Product product = new Product();
         product.setName(request.getName());
@@ -49,8 +56,12 @@ public class ProductServiceImpl implements ProductService {
         product.setStock(request.getStock());
         product.setCategory(category);
         product.setStore(store);
-
         productRepository.saveAndFlush(product);
+
+        if (multipartFiles != null && !multipartFiles.isEmpty()) {
+            List<ProductImage> productImages = productImageService.saveImageBulk(multipartFiles, product);
+            product.setProductImages(productImages);
+        }
 
         return toProductResponse(product);
     }
@@ -113,6 +124,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse toProductResponse(Product product) {
+        List<FileResponse> images = product.getProductImages() != null && !product.getProductImages().isEmpty() ?
+                product.getProductImages().stream().map(productImage -> FileResponse.builder()
+                        .id(productImage.getId())
+                        .url("/api/images/" + productImage.getId())
+                        .build()).toList() :
+                Collections.emptyList();
 
 
         StoreResponse storeResponse = StoreResponse.builder()
@@ -121,6 +138,7 @@ public class ProductServiceImpl implements ProductService {
                 .noSiup(product.getStore().getNoSiup())
                 .address(product.getStore().getAddress())
                 .phone(product.getStore().getPhone())
+                .storeAdminId(product.getStore().getStoreAdmin().getId())
                 .build();
         return ProductResponse.builder()
                 .id(product.getId())
@@ -128,8 +146,9 @@ public class ProductServiceImpl implements ProductService {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .stock(product.getStock())
-                .categoryName(product.getCategory().getName())
+                .category(product.getCategory().getName())
                 .store(storeResponse)
+                .images(images)
                 .build();
     }
 }

@@ -39,6 +39,12 @@ public class Product {
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
 
+    @OneToMany(mappedBy = "product")
+    private List<ProductImage> productImages;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<TransactionDetail> transactionItems;
+    private List<OrderDetail> orderDetails;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<CartItem> cartItems;
 }

@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 public class PaymentResponse {
 
-    private String transactionId;
+    private String cartId;
     private Long amount;
     private PaymentStatus paymentStatus;
     private String tokenSnap;

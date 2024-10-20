@@ -29,10 +29,10 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ValidationUtil validationUtil;
 
-    @Value("${USERNAME_ADMIN:admin}")
+    @Value("${USERNAME_SUPERADMIN:superadmin}")
     private String USERNAME_ADMIN;
 
-    @Value("${PASSWORD_ADMIN:password}")
+    @Value("${PASSWORD_SUPERADMIN:password}")
     private String PASSWORD_ADMIN;
 
     @Transactional(rollbackFor = Exception.class)
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         UserAccount userAccount = UserAccount.builder()
                 .username(USERNAME_ADMIN)
                 .password(passwordEncoder.encode(PASSWORD_ADMIN))
-                .role(UserRole.ROLE_ADMIN)
+                .role(UserRole.ROLE_SUPER_ADMIN)
                 .build();
         userAccountRepository.saveAndFlush(userAccount);
     }

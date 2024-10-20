@@ -12,9 +12,7 @@ import java.util.List;
 
 public interface StoreService {
 
-    StoreResponse create(StoreRequest request);
-
-//    List<ProductResponse> getProductsByStore(String storeId);
+    StoreResponse create(String storeAdminId, StoreRequest request);
 
     List<ProductInStoreResponse>getByStoreId(String storeId);
 
