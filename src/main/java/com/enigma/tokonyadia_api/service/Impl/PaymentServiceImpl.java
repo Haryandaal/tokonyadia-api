@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -62,12 +63,27 @@ public class PaymentServiceImpl implements PaymentService {
             amount += quantity * price;
         }
 
+        List<MidtransItemDetailRequest> itemDetails = cart.getCartItems().stream().map(cartItem -> MidtransItemDetailRequest.builder()
+                .name(cartItem.getProduct().getName())
+                .price(cartItem.getPrice())
+                .quantity(cartItem.getQuantity())
+                .category(cartItem.getProduct().getCategory().getName())
+                .build()).toList();
+
+        MidtransCustomerDetailRequest customerDetails = MidtransCustomerDetailRequest.builder()
+                .name(cart.getCustomer().getName())
+                .email(cart.getCustomer().getEmail())
+                .phone(cart.getCustomer().getPhone())
+                .build();
+
         MidtransPaymentRequest midtransPaymentRequest = MidtransPaymentRequest.builder()
                 .transactionDetails(MidtransTransactionRequest.builder()
                         .orderId(cart.getId())
                         .grossAmount(amount)
                         .build())
                 .enabledPayment(List.of("bca_va", "gopay", "shopeepay", "other_qris"))
+                .itemDetails(itemDetails)
+                .customerDetail(customerDetails)
                 .build();
 
         String headerValue = "Basic " + Base64.getEncoder().encodeToString(MIDTRANS_SERVER_KEY.getBytes(StandardCharsets.UTF_8));

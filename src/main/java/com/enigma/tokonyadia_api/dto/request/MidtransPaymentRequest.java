@@ -1,5 +1,6 @@
 package com.enigma.tokonyadia_api.dto.request;
 
+import com.enigma.tokonyadia_api.entity.CartItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -17,4 +18,10 @@ public class MidtransPaymentRequest {
 
     @JsonProperty(value = "enabled_payments")
     private List<String> enabledPayment;
+
+    @JsonProperty(value = "item_details")
+    private List<MidtransItemDetailRequest> itemDetails;
+
+    @JsonProperty(value = "customer_details")
+    private MidtransCustomerDetailRequest customerDetail;
 }
