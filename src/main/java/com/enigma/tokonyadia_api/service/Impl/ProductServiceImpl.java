@@ -118,6 +118,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
+    public void reduceProductStock(Product product, Integer quantity) {
+        if (product.getStock() < quantity) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough stock");
+        }
+        product.setStock(product.getStock() - quantity);
+        productRepository.saveAndFlush(product);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
     public void removeById(String id) {
         Product product = getById(id);
         productRepository.delete(product);

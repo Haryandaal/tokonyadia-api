@@ -24,7 +24,7 @@ public class CartItem {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "int check (quantity > 0)")
     private Integer quantity;
 
     @Column(nullable = false, columnDefinition = "bigint check (price > 0)")

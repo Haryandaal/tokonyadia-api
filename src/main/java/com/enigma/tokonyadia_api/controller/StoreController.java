@@ -7,7 +7,12 @@ import com.enigma.tokonyadia_api.dto.response.StoreResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
 import com.enigma.tokonyadia_api.service.StoreService;
 import com.enigma.tokonyadia_api.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,10 +26,25 @@ import java.util.List;
 @RequestMapping(path = "api/stores")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
+@Tag(
+        name = "Store",
+        description = "APIs for creating, retrieving, updating, and removing stores "
+)
 public class StoreController {
+    private static class WebResponseStoreResponse extends WebResponse<StoreResponse> {}
 
     private final StoreService storeService;
 
+    @Operation(
+            summary = "Create store",
+            description = "This endpoint is for creating stores and can only be done by authenticated store admins and super admins",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Created store successfully", content = @Content(schema = @Schema(implementation = WebResponseStoreResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = WebResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Access Denied", content = @Content(schema = @Schema(implementation = WebResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content(schema = @Schema(implementation = WebResponse.class))),
+            }
+    )
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'STORE_ADMIN')")
     @PostMapping(path = "{storeAdminId}/add")
     public ResponseEntity<WebResponse<StoreResponse>> createStore(@PathVariable String storeAdminId, @RequestBody StoreRequest request) {
@@ -32,6 +52,14 @@ public class StoreController {
         return ResponseUtil.buildResponse(HttpStatus.CREATED, "Store created", storeResponse);
     }
 
+    @Operation(
+            summary = "Get store by id",
+            description = "This endpoint is for retrieving store by id store",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Retrieved store successfully", content = @Content(schema = @Schema(implementation = WebResponseStoreResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Store not found (invalid id)", content = @Content(schema = @Schema(implementation = WebResponse.class))),
+            }
+    )
     @GetMapping(path = "{id}")
     public ResponseEntity<WebResponse<StoreResponse>> getStoreById(@PathVariable(name = "id") String id) {
         StoreResponse response = storeService.getOne(id);

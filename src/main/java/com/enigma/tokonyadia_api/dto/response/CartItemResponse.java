@@ -1,7 +1,5 @@
 package com.enigma.tokonyadia_api.dto.response;
 
-import com.enigma.tokonyadia_api.entity.Cart;
-import com.enigma.tokonyadia_api.entity.Product;
 import lombok.*;
 
 @Getter

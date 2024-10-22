@@ -24,5 +24,8 @@ public interface ProductService {
 
     ProductResponse updateById(String id, ProductRequest request);
 
+    @Transactional(rollbackFor = Exception.class)
+    void reduceProductStock(Product product, Integer quantity);
+
     void removeById(String id);
 }

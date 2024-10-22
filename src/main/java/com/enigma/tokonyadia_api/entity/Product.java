@@ -28,7 +28,7 @@ public class Product {
     @Column(nullable = false, columnDefinition = "bigint check (price > 0)")
     private Long price;
 
-    @Column(nullable = false, columnDefinition = "int check (stock > 0)")
+    @Column(nullable = false, columnDefinition = "int check (stock >= 0)")
     private Integer stock;
 
     @ManyToOne
@@ -41,9 +41,6 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<OrderDetail> orderDetails;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<CartItem> cartItems;

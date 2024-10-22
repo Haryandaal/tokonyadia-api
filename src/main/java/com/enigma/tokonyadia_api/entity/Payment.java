@@ -19,10 +19,6 @@ public class Payment {
     private String id;
 
     @OneToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
-
-    @OneToOne
     @JoinColumn(name = "cart_id")
     private Cart cart;
 

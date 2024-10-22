@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +29,7 @@ public class ProductController {
     private final ObjectMapper objectMapper;
 
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'STORE_ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<WebResponse<ProductResponse>> createProduct(
             @RequestParam(name = "images", required = false) List<MultipartFile> multipartFiles,
@@ -73,12 +75,14 @@ public class ProductController {
         return ResponseUtil.buildResponsePage(HttpStatus.OK, "Product found", responses);
     }
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'STORE_ADMIN')")
     @PutMapping(path = "{id}")
     public ResponseEntity<WebResponse<ProductResponse>> updateById(@PathVariable(name = "id") String id, @RequestBody ProductRequest request) {
         ProductResponse response = productService.updateById(id, request);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Product updated", response);
     }
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'STORE_ADMIN')")
     @DeleteMapping(path = "{id}")
     public ResponseEntity<WebResponse<String>> deleteProductById(@PathVariable(name = "id") String id) {
         productService.removeById(id);

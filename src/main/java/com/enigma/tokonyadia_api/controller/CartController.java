@@ -1,6 +1,6 @@
 package com.enigma.tokonyadia_api.controller;
 
-import com.enigma.tokonyadia_api.dto.request.OrderDetailRequest;
+import com.enigma.tokonyadia_api.dto.request.CartItemRequest;
 import com.enigma.tokonyadia_api.dto.response.CartResponse;
 import com.enigma.tokonyadia_api.service.CartService;
 import com.enigma.tokonyadia_api.util.ResponseUtil;
@@ -17,7 +17,7 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping
-    public ResponseEntity<?> addProductToCart(@RequestBody OrderDetailRequest request) {
+    public ResponseEntity<?> addProductToCart(@RequestBody CartItemRequest request) {
         CartResponse response = cartService.addProductToCart(request);
         return ResponseUtil.buildResponse(HttpStatus.CREATED, "Successfully added product to the cart", response);
     }
@@ -27,4 +27,11 @@ public class CartController {
         CartResponse response = cartService.getCart();
         return ResponseUtil.buildResponse(HttpStatus.OK, "Successfully retrieved cart", response);
     }
+
+    @DeleteMapping(path = "remove")
+    public ResponseEntity<?> updateProductFromCart(@RequestBody CartItemRequest request) {
+        CartResponse response = cartService.updateProductFromCart(request);
+        return ResponseUtil.buildResponse(HttpStatus.OK, "Successfully updated cart item", response);
+    }
+
 }

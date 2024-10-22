@@ -8,9 +8,10 @@ import com.enigma.tokonyadia_api.dto.response.MidtransSnapResponse;
 import com.enigma.tokonyadia_api.dto.response.PaymentResponse;
 import com.enigma.tokonyadia_api.entity.*;
 import com.enigma.tokonyadia_api.repository.PaymentRepository;
+import com.enigma.tokonyadia_api.repository.ProductRepository;
 import com.enigma.tokonyadia_api.service.CartService;
 import com.enigma.tokonyadia_api.service.PaymentService;
-import com.enigma.tokonyadia_api.service.OrderService;
+import com.enigma.tokonyadia_api.service.ProductService;
 import com.enigma.tokonyadia_api.util.HashUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final CartService cartService;
+    private final ProductRepository productRepository;
     private final MidtransClient midtransClient;
 
 
@@ -81,6 +83,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
         paymentRepository.saveAndFlush(payment);
 
+        for (CartItem item : cart.getCartItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() - item.getQuantity());  // Kurangi stok produk
+            productRepository.saveAndFlush(product);  // Simpan perubahan stok ke database
+        }
+
         cartService.updateOrderStatus(cart.getId(), UpdateOrderStatusRequest.builder()
                         .status(OrderStatus.PENDING)
                 .build());
@@ -101,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (!validateSignatureKey(request))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid signature key");
 
-        Payment payment = paymentRepository.findByOrder_Id(request.getOrderId())
+        Payment payment = paymentRepository.findByCart_Id(request.getOrderId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
 
         PaymentStatus newPaymentStatus = PaymentStatus.findByDesc(request.getTransactionStatus());

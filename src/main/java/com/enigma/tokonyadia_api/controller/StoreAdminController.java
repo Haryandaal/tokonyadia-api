@@ -34,7 +34,7 @@ public class StoreAdminController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<WebResponse<StoreAdminResponse>> updateCustomer(@PathVariable(name = "id") String id, @RequestBody RegisterStoreAdminRequest request) {
+    public ResponseEntity<WebResponse<StoreAdminResponse>> updateStoreAdmin(@PathVariable(name = "id") String id, @RequestBody RegisterStoreAdminRequest request) {
         StoreAdminResponse response = storeAdminService.update(id, request);
         return ResponseUtil.buildResponse(HttpStatus.OK, "Store admin updated", response);
     }
