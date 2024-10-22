@@ -11,7 +11,6 @@ import com.enigma.tokonyadia_api.repository.PaymentRepository;
 import com.enigma.tokonyadia_api.repository.ProductRepository;
 import com.enigma.tokonyadia_api.service.CartService;
 import com.enigma.tokonyadia_api.service.PaymentService;
-import com.enigma.tokonyadia_api.service.ProductService;
 import com.enigma.tokonyadia_api.util.HashUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
         Cart cart = cartService.getById(request.getCartId());
 
         if (!cart.getOrderStatus().equals(OrderStatus.DRAFT))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can only checkout draft orders");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can only checkout listed orders");
 
         // Validasi stok produk di dalam keranjang
         for (CartItem item : cart.getCartItems()) {
@@ -73,6 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         String headerValue = "Basic " + Base64.getEncoder().encodeToString(MIDTRANS_SERVER_KEY.getBytes(StandardCharsets.UTF_8));
         MidtransSnapResponse snapTransaction = midtransClient.createSnapTransaction(midtransPaymentRequest, headerValue);
+
 
         Payment payment = Payment.builder()
                 .cart(cart)
@@ -121,6 +121,25 @@ public class PaymentServiceImpl implements PaymentService {
         if (newPaymentStatus != null && newPaymentStatus.equals(PaymentStatus.SETTLEMENT)) {
             cart.setOrderStatus(OrderStatus.CONFIRMED);
         }
+
+        if (newPaymentStatus != null && newPaymentStatus.equals(PaymentStatus.EXPIRE)) {
+            cart.setOrderStatus(OrderStatus.FAILED);
+            for (CartItem item : cart.getCartItems()) {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());  // kembalikan stok produk
+                productRepository.saveAndFlush(product);  // Simpan perubahan stok ke database
+            }
+        }
+
+        if (newPaymentStatus != null && newPaymentStatus.equals(PaymentStatus.CANCEL)) {
+            cart.setOrderStatus(OrderStatus.FAILED);
+            for (CartItem item : cart.getCartItems()) {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());  // kembalikan stok produk
+                productRepository.saveAndFlush(product);  // Simpan perubahan stok ke database
+            }
+        }
+
 
         UpdateOrderStatusRequest updateOrderStatusRequest = UpdateOrderStatusRequest.builder()
                 .status(cart.getOrderStatus())

@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum PaymentStatus {
+    CAPTURE("capture"),
     SETTLEMENT("settlement"),
     PENDING("pending"),
     DENY("deny"),

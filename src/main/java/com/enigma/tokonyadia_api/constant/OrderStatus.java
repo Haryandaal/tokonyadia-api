@@ -1,14 +1,16 @@
 package com.enigma.tokonyadia_api.constant;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 public enum OrderStatus {
 
-    DRAFT("Draft"),
+    DRAFT("draft"),
     PENDING("Pending"),
+    FAILED("failed"),
     CONFIRMED("Confirmed"),
     PROCESSING("Processing"),
     COMPLETED("Completed");

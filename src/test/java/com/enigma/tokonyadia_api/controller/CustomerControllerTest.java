@@ -1,11 +1,10 @@
 package com.enigma.tokonyadia_api.controller;
 
-import com.enigma.tokonyadia_api.dto.request.CategoryRequest;
-import com.enigma.tokonyadia_api.dto.response.CategoryResponse;
-import com.enigma.tokonyadia_api.dto.response.ProductInStoreResponse;
+import com.enigma.tokonyadia_api.dto.request.RegisterCustomerRequest;
+import com.enigma.tokonyadia_api.dto.response.CustomerResponse;
 import com.enigma.tokonyadia_api.dto.response.WebResponse;
-import com.enigma.tokonyadia_api.entity.Category;
-import com.enigma.tokonyadia_api.service.CategoryService;
+import com.enigma.tokonyadia_api.entity.Customer;
+import com.enigma.tokonyadia_api.service.CustomerService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,12 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,37 +32,41 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class CategoryControllerTest {
+class CustomerControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private CustomerService customerService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private CategoryService categoryService;
-
-
     @Test
-    @WithMockUser(username = "admin", roles = {"SUPER_ADMIN"})
-    void shouldReturn201WhenCreateNewCategory() throws Exception {
-        CategoryRequest request = new CategoryRequest();
+    @WithMockUser(username = "customer", roles = {"CUSTOMER"})
+    void shouldReturn201WhenCreateNewCustomer() throws Exception {
+        RegisterCustomerRequest request = new RegisterCustomerRequest();
         request.setName("test");
+        request.setEmail("test@test.com");
+        request.setPassword("test");
+        request.setAddress("test");
+        request.setPhone("test");
 
         String requestBodyJSON = objectMapper.writeValueAsString(request);
 
-        CategoryResponse expectedResponse = new CategoryResponse();
-        expectedResponse.setId("category-1");
+        CustomerResponse expectedResponse = new CustomerResponse();
+        expectedResponse.setId("test1");
         expectedResponse.setName(request.getName());
-        expectedResponse.setProducts(new ArrayList<>());
+        expectedResponse.setEmail(request.getEmail());
+        expectedResponse.setAddress(request.getAddress());
+        expectedResponse.setPhone(request.getPhone());
 
-        Mockito.when(categoryService.create(Mockito.any()))
-                .thenReturn(expectedResponse);
+        Mockito.when(customerService.create(Mockito.any())).thenReturn(expectedResponse);
 
         mockMvc
                 .perform(
-                        post("/api/categories")
+                        post("/api/customers")
                                 .content(requestBodyJSON)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 )
@@ -76,26 +81,32 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "storeadmin", roles = {"STORE_ADMIN"})
-    void shouldReturn200WhenGetAllCategories() throws Exception {
-        List<CategoryResponse> categories = List.of(
-                new CategoryResponse("1", "Test1", new ArrayList<>()),
-                new CategoryResponse("2", "Test2", new ArrayList<>())
+    @WithMockUser(username = "budi", roles = "CUSTOMER")
+    void shouldReturn200WhenGetAllMenu() throws Exception {
+        List<CustomerResponse> menus = List.of(
+                new CustomerResponse("1", "tes", "tes", "3222", "tes", "333")
+        );
+        PageImpl<CustomerResponse> mockResponses = new PageImpl<>(
+                menus,
+                PageRequest.of(1, 10),
+                menus.size()
         );
 
-        Mockito.when(categoryService.getAll())
-                .thenReturn(categories);
+        Mockito.when(customerService.search(Mockito.any()))
+                .thenReturn(mockResponses);
 
-        mockMvc
-                .perform(
-                        get("/api/categories")
+        mockMvc.perform(
+                get("/api/customers")
+                        .requestAttr("page", "1")
+                        .requestAttr("size", "10")
                 )
-                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(result -> {
-                    String responseJSON = result.getResponse().getContentAsString();
-                    WebResponse<?> response = objectMapper.readValue(responseJSON, new TypeReference<>() {
+                    String jsonResponse = result.getResponse().getContentAsString();
+                    WebResponse<List<CustomerResponse>> response = objectMapper.readValue(jsonResponse, new TypeReference<>() {
                     });
                     assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    assertEquals(1, response.getData().size());
                 });
     }
 }
